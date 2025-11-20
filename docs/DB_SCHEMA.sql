@@ -8,6 +8,10 @@ create table public.users (
   display_name text,
   avatar_url text,
   membership_tier text default 'free' check (membership_tier in ('free', 'pro')),
+  is_pro boolean default false,
+  pro_expires_at timestamp with time zone,
+  trial_started_at timestamp with time zone,
+  trial_ends_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
