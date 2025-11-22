@@ -4,10 +4,13 @@ FROM node:20-alpine
 # 2. 设置工作目录
 WORKDIR /app
 
-# 3. 先复制依赖描述文件（利用缓存加速）
+# --- 新增步骤：设置国内淘宝镜像源，加速下载 ---
+RUN npm config set registry https://registry.npmmirror.com
+
+# 3. 先复制依赖描述文件
 COPY package*.json ./
 
-# 4. 安装项目依赖
+# 4. 安装项目依赖（这时候就会飞快）
 RUN npm install
 
 # 5. 把所有代码复制进去
