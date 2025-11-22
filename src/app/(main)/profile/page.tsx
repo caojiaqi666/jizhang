@@ -16,7 +16,7 @@ import {
   MessageCircle,
   PiggyBank,
 } from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
+import { logout } from "@/app/login/actions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getAllTransactionsForExport } from "@/app/actions/export";
@@ -35,9 +35,7 @@ export default function ProfilePage() {
   const theme = THEME_VARIANTS[primaryColor];
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
+    await logout();
   };
 
   const handleExport = async () => {
@@ -190,120 +188,125 @@ export default function ProfilePage() {
       {/* Pro Banner (Hide if already Pro) */}
       {!isPro && (
         <Card
-          className="border-0 shadow-lg bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden relative cursor-pointer active:scale-[0.99] transition-transform"
+          className="border-0 shadow-xl bg-gradient-to-r from-gray-900 to-gray-800 text-white overflow-hidden relative cursor-pointer active:scale-[0.98] transition-transform rounded-[32px]"
           onClick={() => router.push("/profile/pro")}
         >
-          <CardContent className="p-4 flex items-center justify-between relative z-10">
+          <CardContent className="p-5 flex items-center justify-between relative z-10">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <span className="font-bold text-sm text-yellow-100">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Crown className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
+                <span className="font-bold text-lg text-yellow-100 font-brand tracking-wide">
                   升级 FlowMoney Pro
                 </span>
               </div>
-              <p className="text-[10px] text-gray-300">
+              <p className="text-xs text-gray-300 font-medium">
                 解锁无限统计、多账本、去广告
               </p>
             </div>
             <Button
               size="sm"
-              className="h-8 bg-yellow-400 text-black hover:bg-yellow-500 text-xs font-bold rounded-full pointer-events-none"
+              className="h-10 bg-yellow-400 text-black hover:bg-yellow-500 text-sm font-bold rounded-full shadow-lg shadow-yellow-500/20 pointer-events-none"
             >
               立即升级
             </Button>
           </CardContent>
           {/* Background Decoration */}
-          <div className="absolute -right-6 -top-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl"></div>
+          <div className="absolute -right-6 -top-10 w-40 h-40 bg-yellow-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute -left-6 -bottom-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl"></div>
         </Card>
       )}
 
       {/* Settings List */}
-      <div className="space-y-3">
-        <h2 className="text-xs font-bold text-gray-500 px-2">Pro 会员专区</h2>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-0 divide-y divide-gray-50">
+      <div className="space-y-4">
+        <h2 className="text-xs font-bold text-gray-400 px-2 tracking-wider uppercase">功能</h2>
+        <div className="grid gap-3">
             {featureItems.map((item, i) => (
-              <div
+              <Card
                 key={i}
-                className="flex items-center justify-between p-4 active:bg-gray-50 transition-colors cursor-pointer"
+                className="border-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md active:scale-[0.98] transition-all cursor-pointer p-0"
                 onClick={() => handleFeatureClick(item)}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center relative",
-                      theme.lightBg,
-                      theme.text
-                    )}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.proOnly && isPro && (
-                      <Crown className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 absolute -top-0.5 -right-0.5" />
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">
-                    {item.label}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-400">
-                  <span className="text-xs">{item.value}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
+                <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                    <div
+                        className={cn(
+                        "w-10 h-10 rounded-2xl flex items-center justify-center relative shadow-sm transition-colors",
+                        theme.lightBg,
+                        theme.text
+                        )}
+                    >
+                        <item.icon className="w-5 h-5" />
+                        {item.proOnly && isPro && (
+                        <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500 absolute -top-1 -right-1 drop-shadow-sm" />
+                        )}
+                    </div>
+                    <span className="text-base font-bold text-gray-700">
+                        {item.label}
+                    </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-400">
+                    <span className="text-xs font-medium">{item.value}</span>
+                    <ChevronRight className="w-4 h-4 opacity-50" />
+                    </div>
+                </CardContent>
+              </Card>
             ))}
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
-      <div className="space-y-3">
-        <h2 className="text-xs font-bold text-gray-500 px-2">账号</h2>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-0 divide-y divide-gray-50">
-            <div
-              className="flex items-center justify-between p-4 active:bg-gray-50 transition-colors cursor-pointer"
+      <div className="space-y-4">
+        <h2 className="text-xs font-bold text-gray-400 px-2 tracking-wider uppercase">账号</h2>
+        <div className="grid gap-3">
+            <Card
+              className="border-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md active:scale-[0.98] transition-all cursor-pointer p-0"
               onClick={() => router.push("/profile/settings")}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
-                  <Settings className="w-4 h-4" />
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-600">
+                    <Settings className="w-5 h-5" />
+                    </div>
+                    <span className="text-base font-bold text-gray-700">
+                    通用设置
+                    </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700">
-                  通用设置
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            </div>
+                <ChevronRight className="w-4 h-4 text-gray-400 opacity-50" />
+              </CardContent>
+            </Card>
 
-            <div
-              className="flex items-center justify-between p-4 active:bg-gray-50 transition-colors cursor-pointer"
+            <Card
+              className="border-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md active:scale-[0.98] transition-all cursor-pointer p-0"
               onClick={() => router.push("/profile/contact")}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-green-600">
-                  <MessageCircle className="w-4 h-4" />
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                    <MessageCircle className="w-5 h-5" />
+                    </div>
+                    <span className="text-base font-bold text-gray-700">
+                    联系作者
+                    </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700">
-                  联系作者
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            </div>
+                <ChevronRight className="w-4 h-4 text-gray-400 opacity-50" />
+              </CardContent>
+            </Card>
 
-            <div
-              className="flex items-center justify-between p-4 active:bg-red-50 transition-colors cursor-pointer group"
+            <Card
+              className="border-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md active:scale-[0.98] transition-all cursor-pointer p-0 group"
               onClick={handleLogout}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-100">
-                  <LogOut className="w-4 h-4" />
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-100 transition-colors">
+                    <LogOut className="w-5 h-5" />
+                    </div>
+                    <span className="text-base font-bold text-red-500">
+                    退出登录
+                    </span>
                 </div>
-                <span className="text-sm font-medium text-red-500">
-                  退出登录
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+        </div>
       </div>
 
       <div className="text-center text-[10px] text-gray-300 pt-4">

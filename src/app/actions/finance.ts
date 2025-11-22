@@ -1,7 +1,11 @@
 'use server'
 
-import { createClient } from "@/utils/supabase/server"
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear, format, parse } from "date-fns"
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear } from "date-fns"
+import { getSession } from "@/utils/auth/session"
+import { getTransactions, getTransactionStats, getCategoryStats, getMoodStats, createTransaction as dbCreateTransaction } from "@/utils/mysql/transaction"
+import { getDefaultLedger } from "@/utils/mysql/ledger"
+import { createCategory, getCategoriesByType } from "@/utils/mysql/category"
+import { revalidatePath } from "next/cache"
 
 export interface DashboardData {
   balance: number
@@ -17,88 +21,135 @@ export interface StatsFilter {
     keyword?: string
 }
 
-async function getDefaultLedgerId(supabase: any, userId: string): Promise<string | null> {
-    const { data } = await supabase
-        .from('ledgers')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('is_default', true)
-        .single()
-    return data?.id || null
+export interface CreateTransactionParams {
+    amount: number
+    type: 'income' | 'expense'
+    categoryId: string // This is the icon/identifier from frontend
+    ledgerId: number
+    date: string
+    note?: string
+    mood?: string
 }
 
-export async function getDashboardData(ledgerId?: string, keyword?: string): Promise<DashboardData> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+const VALID_MOODS = ['happy', 'neutral', 'sad', 'angry', 'fear', 'grateful']
 
-  if (!user) throw new Error("Unauthorized")
+export async function createTransaction(params: CreateTransactionParams) {
+    const session = await getSession()
+    if (!session) throw new Error("Unauthorized")
 
-  const defaultLedgerId = await getDefaultLedgerId(supabase, user.id)
+    try {
+        // 1. Validate and map mood
+        let mood = params.mood
+        if (mood && !VALID_MOODS.includes(mood)) {
+            if (mood === 'anxious') mood = 'fear' 
+            else if (mood === 'regret') mood = 'sad'
+            else mood = 'neutral' // Fallback
+        }
+
+        // 2. Find or create category
+        // The frontend sends 'icon' as categoryId. We need to find the real category ID.
+        // Try to find existing category by icon and type for this user (or system default)
+        
+        const categories = await getCategoriesByType(params.type, session.userId)
+        let category = categories.find(c => c.icon === params.categoryId || c.name === params.categoryId)
+        
+        let realCategoryId: number
+
+        if (category) {
+            realCategoryId = category.id
+        } else {
+            // Create new user-specific category
+            realCategoryId = await createCategory(
+                params.categoryId, // name
+                params.categoryId, // icon
+                params.type,
+                undefined, // color
+                session.userId
+            )
+        }
+
+        // 3. Create transaction
+        await dbCreateTransaction(
+            session.userId,
+            params.ledgerId,
+            realCategoryId,
+            params.type === 'expense' ? -Math.abs(params.amount) : Math.abs(params.amount),
+            new Date(params.date),
+            params.note,
+            mood
+        )
+
+        revalidatePath('/')
+        revalidatePath('/stats')
+        return { success: true }
+    } catch (error: any) {
+        console.error("Create transaction error:", error)
+        throw new Error(error.message || "创建交易失败")
+    }
+}
+
+export async function getDashboardData(ledgerId?: number, keyword?: string): Promise<DashboardData> {
+  const session = await getSession()
+  if (!session) throw new Error("Unauthorized")
+
+  const defaultLedger = await getDefaultLedger(session.userId)
   
   // Logic: 
   // 1. If ledgerId is NOT provided OR matches defaultLedgerId -> Query ALL user transactions (Master View)
   // 2. If ledgerId IS provided and is NOT default -> Query only that ledger's transactions (Subset View)
   
-  const isMasterView = !ledgerId || (defaultLedgerId && ledgerId === defaultLedgerId)
+  const isMasterView = !ledgerId || (defaultLedger && ledgerId === defaultLedger.id)
 
   const now = new Date()
-  const start = startOfMonth(now).toISOString()
-  const end = endOfMonth(now).toISOString()
+  const start = startOfMonth(now)
+  const end = endOfMonth(now)
 
-  let query = supabase
-    .from('transactions')
-    .select(`
-      *,
-      categories (
-        name,
-        icon,
-        color:type
-      )
-    `)
-    .eq('user_id', user.id)
-    .gte('date', start)
-    .lte('date', end)
-    .order('date', { ascending: false })
-  
-  // Only apply filter if NOT in master view
-  if (!isMasterView && ledgerId) {
-      query = query.eq('ledger_id', ledgerId)
-  }
+  // Get transactions
+  const transactions = await getTransactions(
+    session.userId,
+    isMasterView ? undefined : ledgerId,
+    start,
+    end,
+    keyword
+  )
 
-  if (keyword) {
-      query = query.ilike('note', `%${keyword}%`)
-  }
+  // Get stats
+  const stats = await getTransactionStats(
+    session.userId,
+    isMasterView ? undefined : ledgerId,
+    start,
+    end
+  )
 
-  const { data: transactions, error } = await query
-
-  if (error) throw error
-
-  let income = 0
-  let expense = 0
-
-  transactions?.forEach(t => {
-    const amt = Number(t.amount)
-    if (amt > 0) income += amt
-    else expense += Math.abs(amt)
-  })
-
-  const recentTransactions = transactions || []
+  // Format transactions for the frontend
+  const formattedTransactions = transactions.map(t => ({
+    id: t.id,
+    amount: Number(t.amount),
+    date: t.date.toISOString(),
+    note: t.note,
+    mood: t.mood,
+    image_url: t.image_url,
+    categories: t.category_name ? {
+      name: t.category_name,
+      icon: t.category_icon,
+      type: t.category_type
+    } : null
+  }))
 
   return {
-    balance: income - expense,
-    income,
-    expense,
-    transactions: recentTransactions
+    balance: stats.balance,
+    income: stats.income,
+    expense: stats.expense,
+    transactions: formattedTransactions
   }
 }
 
-export async function getStatsData(filter: StatsFilter, ledgerId?: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error("Unauthorized")
+export async function getStatsData(filter: StatsFilter, ledgerId?: number) {
+    const session = await getSession()
+    if (!session) throw new Error("Unauthorized")
 
-    const defaultLedgerId = await getDefaultLedgerId(supabase, user.id)
-    const isMasterView = !ledgerId || (defaultLedgerId && ledgerId === defaultLedgerId)
+    const defaultLedger = await getDefaultLedger(session.userId)
+    const isMasterView = !ledgerId || (defaultLedger && ledgerId === defaultLedger.id)
 
     let start: Date, end: Date
     const refDate = filter.date ? new Date(filter.date) : new Date()
@@ -115,61 +166,29 @@ export async function getStatsData(filter: StatsFilter, ledgerId?: string) {
         end = endOfMonth(refDate)
     }
 
-    let query = supabase
-        .from('transactions')
-        .select(`
-            *,
-            categories (name, icon)
-        `)
-        .eq('user_id', user.id)
-        .gte('date', start.toISOString())
-        .lte('date', end.toISOString())
+    // Determine which type to query
+    const targetType = filter.type === 'all' ? 'expense' : filter.type
 
-    // Filter by ledger if provided AND not master view
-    if (!isMasterView && ledgerId) {
-        query = query.eq('ledger_id', ledgerId)
-    }
+    // Get category stats
+    const categoryStats = await getCategoryStats(
+        session.userId,
+        targetType,
+        isMasterView ? undefined : ledgerId,
+        start,
+        end
+    )
 
-    if (filter.keyword) {
-        query = query.ilike('note', `%${filter.keyword}%`)
-    }
+    // Get mood stats
+    const moodStats = await getMoodStats(
+        session.userId,
+        targetType,
+        isMasterView ? undefined : ledgerId,
+        start,
+        end
+    )
 
-    const { data: transactions } = await query
-
-    // Process data based on type filter
-    const categoryMap = new Map<string, number>()
-    const moodMap = new Map<string, number>()
-    let totalAmount = 0
-
-    transactions?.forEach(t => {
-        const amt = Number(t.amount)
-        const isIncome = amt > 0
-        const absAmt = Math.abs(amt)
-
-        // Filter logic:
-        const targetType = filter.type === 'all' ? 'expense' : filter.type
-        const matchesType = (targetType === 'income' && isIncome) || (targetType === 'expense' && !isIncome)
-
-        if (matchesType) {
-            totalAmount += absAmt
-            
-            // Category Stats
-            const catName = t.categories?.name || '未知'
-            categoryMap.set(catName, (categoryMap.get(catName) || 0) + absAmt)
-
-            // Mood Stats
-            const mood = t.mood || 'neutral'
-            moodMap.set(mood, (moodMap.get(mood) || 0) + absAmt)
-        }
-    })
-
-    const categoryStats = Array.from(categoryMap.entries()).map(([name, value]) => ({
-        name, value
-    })).sort((a, b) => b.value - a.value)
-
-    const moodStats = Array.from(moodMap.entries()).map(([id, amount]) => ({
-        id, amount
-    })).sort((a, b) => b.amount - a.amount)
+    // Calculate total
+    const totalAmount = categoryStats.reduce((sum, cat) => sum + cat.value, 0)
 
     return {
         totalAmount,

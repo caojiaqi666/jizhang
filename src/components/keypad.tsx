@@ -21,7 +21,7 @@ export function Keypad({ onKeyPress, onDelete, onSubmit, submitColorClass }: Key
   ]
 
   return (
-    <div className="grid grid-cols-4 gap-2 p-4 bg-gray-50 rounded-t-2xl">
+    <div className="grid grid-cols-4 gap-3 p-4 pb-8 bg-white rounded-t-[32px] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
       {keys.map((key) => {
         if (key === "") return <div key="empty" />
         
@@ -30,10 +30,10 @@ export function Keypad({ onKeyPress, onDelete, onSubmit, submitColorClass }: Key
             <Button
               key={key}
               variant="ghost"
-              className="h-14 text-xl font-medium bg-white shadow-sm active:scale-95 transition-transform rounded-2xl"
+              className="h-16 w-16 rounded-full text-xl font-medium bg-gray-50 shadow-sm active:scale-90 transition-all hover:bg-gray-100 text-gray-500"
               onClick={onDelete}
             >
-              <Delete className="w-6 h-6 text-gray-600" />
+              <Delete className="w-6 h-6" />
             </Button>
           )
         }
@@ -43,12 +43,12 @@ export function Keypad({ onKeyPress, onDelete, onSubmit, submitColorClass }: Key
             <Button
               key={key}
               className={cn(
-                "h-14 text-xl font-bold text-white shadow-md active:scale-95 transition-transform rounded-2xl row-span-1",
-                submitColorClass || "bg-teal-600 hover:bg-teal-700"
+                "h-16 rounded-[32px] text-xl font-bold text-white shadow-lg active:scale-95 transition-all row-span-1 col-span-1",
+                submitColorClass || "bg-primary hover:bg-primary/90"
               )}
               onClick={onSubmit}
             >
-              完成
+              OK
             </Button>
           )
         }
@@ -58,10 +58,10 @@ export function Keypad({ onKeyPress, onDelete, onSubmit, submitColorClass }: Key
         return (
           <Button
             key={key}
-            variant={isOperator ? "secondary" : "ghost"}
+            variant="ghost"
             className={cn(
-              "h-14 text-2xl font-medium shadow-sm active:scale-95 transition-transform rounded-2xl",
-              isOperator ? "bg-orange-100 text-orange-600 hover:bg-orange-200" : "bg-white text-gray-800 hover:bg-gray-50"
+              "h-16 w-16 rounded-full text-2xl font-bold shadow-[0_2px_8px_rgba(0,0,0,0.05)] active:scale-90 transition-all font-nunito",
+              isOperator ? "bg-accent/20 text-accent hover:bg-accent/30" : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-100"
             )}
             onClick={() => onKeyPress(key)}
           >

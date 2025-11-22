@@ -33,25 +33,27 @@ export function CategoryGrid({ selectedId, onSelect, type }: CategoryGridProps) 
 
   return (
     <ScrollArea className="w-full px-4">
-      <div className="grid grid-cols-4 gap-y-4 gap-x-2 py-2">
+      <div className="grid grid-cols-4 gap-y-6 gap-x-4 py-4">
         {filteredCategories.map((category) => {
           const isSelected = selectedId === category.id
           const Icon = category.icon
           
           return (
-            <div key={category.id} className="flex flex-col items-center gap-1 cursor-pointer group" onClick={() => onSelect(category.id)}>
+            <div key={category.id} className="flex flex-col items-center gap-2 cursor-pointer group" onClick={() => onSelect(category.id)}>
               <div 
                 className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200",
-                  isSelected ? "bg-teal-600 text-white shadow-lg scale-110" : category.color,
-                  !isSelected && "group-hover:scale-105"
+                  "w-14 h-14 rounded-[20px] flex items-center justify-center transition-all duration-300",
+                  isSelected 
+                    ? (type === 'expense' ? "bg-expense text-white shadow-lg scale-110 rotate-3" : "bg-income text-white shadow-lg scale-110 -rotate-3") 
+                    : category.color,
+                  !isSelected && "group-hover:scale-105 group-active:scale-95"
                 )}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-6 h-6 stroke-[2.5px]" />
               </div>
               <span className={cn(
-                "text-xs font-medium transition-colors",
-                isSelected ? "text-teal-600" : "text-gray-500"
+                "text-xs font-bold transition-colors",
+                isSelected ? (type === 'expense' ? "text-expense" : "text-income") : "text-gray-400"
               )}>
                 {category.name}
               </span>

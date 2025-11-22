@@ -1,54 +1,37 @@
 'use server'
 
-import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
-import { ensureProfileRecord } from "@/app/actions/user"
+import { getSession } from "@/utils/auth/session"
+import { getLedgersByUserId, createLedger as dbCreateLedger, deleteLedger as dbDeleteLedger, updateLedger as dbUpdateLedger, ensureDefaultLedger } from "@/utils/mysql/ledger"
+import { getUserById } from "@/utils/mysql/user"
 
 export interface Ledger {
-    id: string
+    id: number
     name: string
     is_default: boolean
-    created_at: string
+    created_at: Date
 }
 
 export async function getLedgers(): Promise<Ledger[]> {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return []
+        const session = await getSession()
+        if (!session) return []
 
-        const { data, error } = await supabase
-            .from('ledgers')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: true })
+        let ledgers = await getLedgersByUserId(session.userId)
         
-        if (error) {
-            console.error("Supabase error in getLedgers:", error)
-            return []
-        }
-
         // If user has no ledgers, automatically create a default one
-        if (!data || data.length === 0) {
-            console.log("No ledgers found, creating default ledger for user:", user.id)
-            const { data: newLedger, error: createError } = await supabase
-                .from('ledgers')
-                .insert({
-                    user_id: user.id,
-                    name: '默认账本',
-                    is_default: true
-                })
-                .select()
-                .single()
-            
-            if (createError) {
-                console.error("Failed to auto-create default ledger:", createError)
-                return []
-            }
-            return [newLedger]
+        if (!ledgers || ledgers.length === 0) {
+            console.log("No ledgers found, creating default ledger for user:", session.userId)
+            await ensureDefaultLedger(session.userId)
+            ledgers = await getLedgersByUserId(session.userId)
         }
 
-        return data
+        return ledgers.map(l => ({
+            id: l.id,
+            name: l.name,
+            is_default: l.is_default,
+            created_at: l.created_at
+        }))
     } catch (e) {
         console.error("Server Action getLedgers failed:", e)
         return []
@@ -57,22 +40,16 @@ export async function getLedgers(): Promise<Ledger[]> {
 
 export async function createLedger(name: string) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error("Unauthorized")
+        const session = await getSession()
+        if (!session) throw new Error("Unauthorized")
 
-        const profile = await ensureProfileRecord(supabase, user)
-        if (!profile.is_pro) {
+        const user = await getUserById(session.userId)
+        if (!user || !user.is_pro) {
             throw new Error("该功能为 Pro 会员专享")
         }
 
-        const { error } = await supabase.from('ledgers').insert({
-            user_id: user.id,
-            name,
-            is_default: false
-        })
-
-        if (error) throw error
+        await dbCreateLedger(session.userId, name, false)
+        
         revalidatePath('/profile/ledgers')
         return { success: true }
     } catch (e: any) {
@@ -81,19 +58,18 @@ export async function createLedger(name: string) {
     }
 }
 
-export async function deleteLedger(id: string) {
+export async function deleteLedger(id: number) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error("Unauthorized")
+        const session = await getSession()
+        if (!session) throw new Error("Unauthorized")
 
-        const profile = await ensureProfileRecord(supabase, user)
-        if (!profile.is_pro) {
+        const user = await getUserById(session.userId)
+        if (!user || !user.is_pro) {
             throw new Error("该功能为 Pro 会员专享")
         }
 
-        const { error } = await supabase.from('ledgers').delete().eq('id', id).eq('user_id', user.id)
-        if (error) throw error
+        await dbDeleteLedger(id)
+        
         revalidatePath('/profile/ledgers')
         return { success: true }
     } catch (e: any) {
@@ -102,19 +78,18 @@ export async function deleteLedger(id: string) {
     }
 }
 
-export async function updateLedger(id: string, name: string) {
+export async function updateLedger(id: number, name: string) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error("Unauthorized")
+        const session = await getSession()
+        if (!session) throw new Error("Unauthorized")
 
-        const profile = await ensureProfileRecord(supabase, user)
-        if (!profile.is_pro) {
+        const user = await getUserById(session.userId)
+        if (!user || !user.is_pro) {
             throw new Error("该功能为 Pro 会员专享")
         }
 
-        const { error } = await supabase.from('ledgers').update({ name }).eq('id', id)
-        if (error) throw error
+        await dbUpdateLedger(id, name)
+        
         revalidatePath('/profile/ledgers')
         return { success: true }
     } catch (e: any) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Plus, Trash2, Edit2, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,40 +12,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { getLedgers, createLedger, deleteLedger, updateLedger, Ledger } from "@/app/actions/ledgers"
+import { createLedger, deleteLedger, updateLedger, Ledger } from "@/app/actions/ledgers"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useMembership } from "@/components/membership-provider"
 import { ProFeatureWall } from "@/components/pro-feature-wall"
+import { useLedger } from "@/components/ledger-provider"
 
 export default function LedgersPage() {
   const router = useRouter()
-  const [ledgers, setLedgers] = useState<Ledger[]>([])
-  const [loadingLedgers, setLoadingLedgers] = useState(true)
+  // Use global ledger context instead of local state
+  const { ledgers, refreshLedgers } = useLedger()
+  
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [newName, setNewName] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const { isPro, loading: membershipLoading } = useMembership()
-
-  const fetchLedgers = async () => {
-      try {
-          const data = await getLedgers()
-          setLedgers(data)
-      } catch (e) {
-          console.error(e)
-      } finally {
-          setLoadingLedgers(false)
-      }
-  }
-
-  useEffect(() => {
-      if (!isPro) {
-        setLoadingLedgers(false)
-        return
-      }
-      fetchLedgers()
-  }, [isPro])
 
   const handleCreate = async () => {
       if (!isPro) {
@@ -59,7 +42,7 @@ export default function LedgersPage() {
           toast.success("账本创建成功")
           setIsCreateOpen(false)
           setNewName("")
-          fetchLedgers()
+          await refreshLedgers() // Refresh global context
       } catch (e) {
           const message = e instanceof Error ? e.message : "创建失败"
           toast.error(message)
@@ -76,7 +59,7 @@ export default function LedgersPage() {
           try {
               await deleteLedger(id)
               toast.success("已删除")
-              fetchLedgers()
+              await refreshLedgers() // Refresh global context
           } catch (e) {
               const message = e instanceof Error ? e.message : "删除失败"
               toast.error(message)
@@ -99,7 +82,7 @@ export default function LedgersPage() {
           await updateLedger(id, editName)
           toast.success("更新成功")
           setEditingId(null)
-          fetchLedgers()
+          await refreshLedgers() // Refresh global context
       } catch (e) {
           const message = e instanceof Error ? e.message : "更新失败"
           toast.error(message)
@@ -147,9 +130,8 @@ export default function LedgersPage() {
         />
       ) : (
       <div className="space-y-3">
-        {loadingLedgers ? (
-            <div className="text-center text-gray-400 text-sm py-8">加载中...</div>
-        ) : ledgers.map((ledger) => (
+        {/* Use global ledgers state directly */}
+        {ledgers.map((ledger) => (
             <div key={ledger.id} className="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between">
                 {editingId === ledger.id ? (
                     <div className="flex items-center gap-2 flex-1 mr-2">
@@ -204,4 +186,3 @@ export default function LedgersPage() {
     </div>
   )
 }
-

@@ -1,35 +1,67 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, LogOut, Trash2, CalendarPlus } from "lucide-react"
+import { ChevronLeft, LogOut, Trash2, CalendarPlus, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { createClient } from "@/utils/supabase/client"
+import { logout } from "@/app/login/actions"
+import { changePassword } from "@/app/actions/user"
 import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function SettingsPage() {
   const router = useRouter()
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const [oldPassword, setOldPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/login")
+    await logout()
+  }
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+        toast.error("新密码长度至少6位")
+        return
+    }
+    if (newPassword !== confirmPassword) {
+        toast.error("两次输入的新密码不一致")
+        return
+    }
+
+    setIsSubmitting(true)
+    try {
+        const result = await changePassword(oldPassword, newPassword)
+        if (result.success) {
+            toast.success("密码修改成功，请重新登录")
+            setIsChangePasswordOpen(false)
+            await handleLogout()
+        } else {
+            toast.error(result.error || "修改失败")
+        }
+    } catch (e) {
+        toast.error("修改失败")
+    } finally {
+        setIsSubmitting(false)
+    }
   }
 
   const handleClearData = () => {
-      // In real app, this would call a server action to DELETE FROM transactions
       toast.error("为了您的数据安全，演示版暂不支持清空数据")
   }
 
   const handleAddReminder = () => {
-      // Simple "Add to Calendar" link for a recurring event
-      // This is a quick way to set reminders without Push Notifications
-      const event = {
-          title: "记账时间 - FlowMoney",
-          details: "记得记录今天的美好与开销哦！",
-          // Recurring rule not standard in simple links, but we can open calendar app
-      }
-      // Webcal or Google Calendar link
       window.open("https://calendar.google.com/calendar/u/0/r/eventedit?text=记账时间&details=FlowMoney提醒&recur=RRULE:FREQ=DAILY", "_blank")
   }
 
@@ -52,6 +84,60 @@ export default function SettingsPage() {
                         <span className="text-sm text-gray-700">当前账号</span>
                         <span className="text-sm text-gray-400">已登录</span>
                     </div>
+                    
+                    <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
+                        <DialogTrigger asChild>
+                            <div className="p-4 flex items-center gap-3 cursor-pointer active:bg-gray-50">
+                                <Lock className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm font-medium text-gray-700">修改密码</span>
+                            </div>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>修改密码</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="old">旧密码</Label>
+                                    <Input 
+                                        id="old"
+                                        type="password"
+                                        value={oldPassword}
+                                        onChange={(e) => setOldPassword(e.target.value)}
+                                        placeholder="请输入旧密码"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="new">新密码</Label>
+                                    <Input 
+                                        id="new"
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="至少6位"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirm">确认新密码</Label>
+                                    <Input 
+                                        id="confirm"
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="再次输入新密码"
+                                    />
+                                </div>
+                                <Button 
+                                    className="w-full bg-teal-600 mt-2" 
+                                    onClick={handleChangePassword}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? "提交中..." : "确认修改"}
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+
                     <div 
                         className="p-4 flex items-center gap-3 text-red-500 cursor-pointer active:bg-red-50"
                         onClick={handleLogout}
@@ -106,4 +192,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-

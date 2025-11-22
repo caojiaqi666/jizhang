@@ -30,8 +30,12 @@ export function TrialReminder() {
     if (!profile?.trial_started_at || !profile?.trial_ends_at) return 0
     const total = new Date(profile.trial_ends_at).getTime() - new Date(profile.trial_started_at).getTime()
     if (total <= 0) return 0
-    const consumed = Math.min(total, Math.max(0, Date.now() - new Date(profile.trial_started_at).getTime()))
-    return Math.min(100, Math.max(0, (consumed / total) * 100))
+    
+    const now = Date.now()
+    const endsAt = new Date(profile.trial_ends_at).getTime()
+    const remaining = Math.max(0, endsAt - now)
+    
+    return Math.min(100, Math.max(0, (remaining / total) * 100))
   }, [profile?.trial_started_at, profile?.trial_ends_at])
 
   if (!isTrial) return null
@@ -57,10 +61,14 @@ export function TrialReminder() {
 
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs text-gray-400">
-            <span>体验进度</span>
+            <span>剩余体验</span>
             <span>{Math.round(progressValue)}%</span>
           </div>
-          <Progress value={progressValue} className="h-2 bg-white/10" />
+          <Progress 
+            value={progressValue} 
+            className="h-2 bg-white/10" 
+            indicatorClassName="bg-gradient-to-r from-red-500 via-orange-500 to-green-500"
+          />
         </div>
 
         <div className="flex flex-col gap-2">

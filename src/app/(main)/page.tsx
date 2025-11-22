@@ -8,7 +8,7 @@ import { format, isToday, isYesterday } from "date-fns"
 import { zhCN } from "date-fns/locale"
 import { CATEGORIES } from "@/components/category-grid"
 import { MOODS } from "@/components/mood-selector"
-import { useTheme, THEME_COLORS } from "@/components/theme-provider"
+import { useTheme, THEME_VARIANTS } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { LedgerSwitcher } from "@/components/ledger-switcher"
 import { useLedger } from "@/components/ledger-provider"
@@ -21,9 +21,12 @@ const getCategoryIcon = (iconId: string) => {
     const cat = CATEGORIES.find(c => c.id === iconId)
     return cat ? cat.icon : HelpCircle
 }
+// Using pastel backgrounds for icon boxes
 const getCategoryColor = (iconId: string) => {
     const cat = CATEGORIES.find(c => c.id === iconId)
-    return cat ? cat.color : "bg-gray-100 text-gray-600"
+    // Use the existing logic but maybe we can force a pastel background if the class allows
+    // Current cat.color usually looks like "bg-red-100 text-red-600" which is already pastel-ish
+    return cat ? cat.color : "bg-[#F5F7FA] text-gray-600"
 }
 
 export default function Dashboard() {
@@ -31,8 +34,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [hidden, setHidden] = useState(false)
   const { primaryColor, backgroundImage } = useTheme()
-  const { currentLedger } = useLedger()
+  const { currentLedger, loading: ledgerLoading } = useLedger()
   const { profile } = useMembership()
+  const theme = THEME_VARIANTS[primaryColor]
 
   const fetchData = async () => {
       if (!currentLedger) return
@@ -48,18 +52,20 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-      fetchData()
+      if (currentLedger) {
+        fetchData()
+      } else if (!ledgerLoading) {
+        setLoading(false)
+      }
       
-      // Refresh when window gets focus or custom event
       window.addEventListener('focus', fetchData)
       window.addEventListener('transaction-updated', fetchData)
       return () => {
           window.removeEventListener('focus', fetchData)
           window.removeEventListener('transaction-updated', fetchData)
       }
-  }, [currentLedger]) // Re-fetch when ledger changes
+  }, [currentLedger, ledgerLoading])
 
-  // Group transactions by date
   const groupedTransactions = data?.transactions.reduce((acc, t) => {
       const dateKey = format(new Date(t.date), 'yyyy-MM-dd')
       if (!acc[dateKey]) acc[dateKey] = []
@@ -67,65 +73,61 @@ export default function Dashboard() {
       return acc
   }, {} as Record<string, any[]>)
 
-  const gradientClass = THEME_COLORS[primaryColor] || THEME_COLORS.teal
-
   return (
     <main className="flex flex-col h-full relative">
-      {/* Header / Asset Card */}
-      <header
-        className={cn(
-          "relative overflow-hidden text-white p-6 pt-12 pb-10 rounded-b-[32px] shadow-lg z-10 transition-all duration-500 ease-out",
-          gradientClass
-        )}
-      >
-        {backgroundImage && (
-          <div
-            className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{ backgroundImage: `linear-gradient(120deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35)), url(${backgroundImage})` }}
-          />
-        )}
-        <div className="relative z-10">
-          <div className="flex justify-between items-center mb-6">
-            <LedgerSwitcher />
-            <div
-              className="bg-white/20 p-2 rounded-full backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
-              onClick={() => setHidden(!hidden)}
-            >
-              <Eye className="w-4 h-4 text-white" />
+      {/* Header / Balance Card - Mochi Style */}
+      <div className="px-6 pt-12 pb-4 relative z-10">
+        <div className="flex justify-between items-center mb-4 px-2">
+            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-3xl shadow-[var(--shadow-soft)] cursor-pointer active:scale-90 transition-transform">
+                {/* Avatar Placeholder - cat emoji from 1.html */}
+                🐱
             </div>
-          </div>
-
-          <div className="mb-6">
-            <div className="text-white/80 text-xs mb-1 opacity-80">本月结余</div>
-            <div className="text-4xl font-bold tracking-tight font-mono">
-              {loading ? "..." : hidden ? "****" : `¥ ${data?.balance.toFixed(2)}`}
-            </div>
-          </div>
-
-          <div className="flex gap-8">
-            <div>
-              <div className="text-white/80 text-xs mb-1 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-white/80"></span> 本月收入
-              </div>
-              <div className="text-lg font-semibold font-mono">
-                {loading ? "..." : hidden ? "****" : `¥ ${data?.income.toFixed(2)}`}
-              </div>
-            </div>
-            <div>
-              <div className="text-white/80 text-xs mb-1 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-white/40"></span> 本月支出
-              </div>
-              <div className="text-lg font-semibold font-mono">
-                {loading ? "..." : hidden ? "****" : `¥ ${data?.expense.toFixed(2)}`}
-              </div>
-            </div>
-          </div>
         </div>
-      </header>
+
+        <div 
+            className={cn(
+                "relative overflow-hidden text-white p-6 rounded-[24px] shadow-lg transition-all duration-500 min-h-[140px] flex flex-col justify-center",
+                theme.bg
+            )}
+            style={{ boxShadow: '0 8px 20px rgba(136, 216, 176, 0.4)' }} 
+        >
+            {/* Decorative Dot */}
+            <div className="absolute -top-[10px] -right-[10px] w-[60px] h-[60px] rounded-full bg-white/20" />
+            
+            {backgroundImage && (
+            <div
+                className="absolute inset-0 bg-cover bg-center opacity-50 mix-blend-overlay"
+                style={{ backgroundImage: `url(${backgroundImage})` }}
+            />
+            )}
+
+            <div className="relative z-10">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="text-white/90 text-xs font-medium mb-1 opacity-90">本月剩余</div>
+                        <div className="text-3xl font-extrabold tracking-wide font-nunito">
+                            {loading ? "..." : hidden ? "****" : `¥ ${(data?.balance || 0).toFixed(2)}`}
+                        </div>
+                    </div>
+                     <div
+                        className="bg-white/20 p-1.5 rounded-full backdrop-blur-md cursor-pointer hover:bg-white/30 transition-colors"
+                        onClick={() => setHidden(!hidden)}
+                    >
+                        <Eye className="w-4 h-4 text-white" />
+                    </div>
+                </div>
+                
+                {/* Ledger Name as a subtle tag */}
+                <div className="mt-4 flex items-center gap-2">
+                    <LedgerSwitcher className="bg-white/20 text-white border-none hover:bg-white/30 h-7 text-xs px-3" />
+                </div>
+            </div>
+        </div>
+      </div>
 
       {/* Transaction List */}
-      <div className="flex-1 -mt-0 px-4 overflow-y-auto">
-         <div className="mb-4 pt-2">
+      <div className="flex-1 px-6 pb-[100px] overflow-y-auto scrollbar-hide">
+         <div className="mb-4">
             <SavingsCard 
                 goal={profile?.monthly_savings_goal || 0} 
                 balance={data?.balance || 0} 
@@ -133,7 +135,6 @@ export default function Dashboard() {
             />
          </div>
          
-         {/* Reminder */}
          <SavingsReminder 
             enabled={!!profile?.monthly_savings_enabled}
             goal={profile?.monthly_savings_goal || 0}
@@ -141,46 +142,57 @@ export default function Dashboard() {
          />
 
          {loading ? (
-             <div className="text-center text-gray-400 text-xs mt-10">加载中...</div>
+             <div className="text-center text-gray-400 text-xs mt-10 animate-pulse">加载中...</div>
          ) : !data?.transactions.length ? (
-             <div className="text-center text-gray-400 text-xs mt-10">本月暂无账单，记一笔吧～</div>
+             <div className="text-center text-gray-400 text-sm mt-10 bg-white/50 p-8 rounded-[24px] border-2 border-dashed border-gray-200">
+                <div className="text-4xl mb-4">📝</div>
+                本月暂无账单，记一笔吧～
+             </div>
          ) : (
-             <div className="space-y-6 pb-4 pt-4">
+             <div className="space-y-6 pb-4">
                 {(Object.entries(groupedTransactions || {}) as [string, any[]][]).map(([date, items]) => {
                     let dateLabel = format(new Date(date), 'M月d日', { locale: zhCN })
-                    if (isToday(new Date(date))) dateLabel = "今天"
-                    if (isYesterday(new Date(date))) dateLabel = "昨天"
+                    if (isToday(new Date(date))) dateLabel = "今日" // Changed to match 1.html
+                    if (isYesterday(new Date(date))) dateLabel = "昨日" // Changed to match 1.html
 
                     return (
                         <div key={date}>
-                            <div className="text-xs text-gray-500 font-medium px-2 mb-2">{dateLabel}</div>
+                            <div className="text-[14px] text-[#9E9E9E] font-bold mt-6 mb-3">{dateLabel}</div>
                             <div className="space-y-3">
                                 {items.map((t) => {
                                     const Icon = getCategoryIcon(t.categories?.icon || 'other')
                                     const colorClass = getCategoryColor(t.categories?.icon || 'other')
                                     const moodEmoji = MOODS.find(m => m.id === t.mood)?.emoji || ''
+                                    const isExpense = t.type === 'expense' || t.amount < 0
+                                    
+                                    // Construct "Time · Label" string
+                                    const timeStr = format(new Date(t.date), 'HH:mm')
+                                    // If there's a mood or note, use it as label, otherwise just time
+                                    const labelStr = t.note ? t.note : (moodEmoji ? (moodEmoji + " 心情") : (isExpense ? "支出" : "收入"))
 
                                     return (
-                                        <Card key={t.id} className="border-0 shadow-sm hover:shadow-md transition-shadow bg-white/80 backdrop-blur-sm">
-                                            <CardContent className="p-4 flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${colorClass}`}>
-                                                <Icon className="w-5 h-5" />
+                                        <div 
+                                            key={t.id} 
+                                            className="bg-card rounded-[20px] p-4 mb-3 flex items-center shadow-[var(--shadow-soft)] transition-transform active:scale-95 cursor-pointer border-0"
+                                        >
+                                            <div className={cn("w-12 h-12 rounded-[16px] flex items-center justify-center text-2xl mr-4", colorClass)}>
+                                                <Icon className="w-6 h-6" />
                                             </div>
                                             <div className="flex-1">
-                                                <div className="font-medium text-gray-800 flex items-center gap-2">
+                                                <div className="text-[16px] text-[#5B5B5B] font-bold mb-1">
                                                     {t.categories?.name}
-                                                    {t.note && <span className="text-xs font-normal text-gray-400 truncate max-w-[100px]">{t.note}</span>}
                                                 </div>
-                                                <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                                                    <span>{moodEmoji}</span>
-                                                    <span>{format(new Date(t.date), 'HH:mm')}</span>
+                                                <div className="text-[12px] text-[#9E9E9E]">
+                                                    {timeStr} · {labelStr}
                                                 </div>
                                             </div>
-                                            <div className={`font-mono font-semibold ${Number(t.amount) > 0 ? 'text-emerald-600' : 'text-gray-800'}`}>
-                                                {Number(t.amount) > 0 ? '+' : ''}{t.amount}
+                                            <div className={cn(
+                                                "text-[18px] font-extrabold font-nunito", 
+                                                isExpense ? "text-expense" : "text-income"
+                                            )}>
+                                                {isExpense ? '-' : '+'}{Math.abs(Number(t.amount)).toFixed(2)}
                                             </div>
-                                            </CardContent>
-                                        </Card>
+                                        </div>
                                     )
                                 })}
                             </div>

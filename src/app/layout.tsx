@@ -6,10 +6,31 @@ import { LedgerProvider } from "@/components/ledger-provider"
 import { MembershipProvider } from "@/components/membership-provider"
 import { TrialReminder } from "@/components/trial-reminder"
 import { CapacitorInit } from "@/components/capacitor-init"
+import { cookies } from "next/headers"
+import { WelcomeGiftDialog } from "@/components/welcome-gift-dialog"
+
+import { Nunito, ZCOOL_KuaiLe } from "next/font/google";
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  display: "swap",
+});
+
+const zcool = ZCOOL_KuaiLe({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-zcool",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "FlowMoney - 心流记账",
-  description: "记录生活，治愈自己",
+  title: "麻薯记账 - Mochi Book",
+  description: "Q弹可爱的记账助手",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
   manifest: "/manifest.json",
 };
 
@@ -22,15 +43,18 @@ export const viewport: Viewport = {
   viewportFit: "cover", // 支持安全区域（刘海屏、底部手势条）
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies()
+  const showWelcome = cookieStore.get('fm_welcome_gift')?.value === 'true'
+
   return (
     <html lang="zh-CN">
       <body
-        className={`antialiased bg-gray-50`}
+        className={`antialiased bg-background ${nunito.variable} ${zcool.variable}`}
       >
         <CapacitorInit />
         <ThemeProvider>
@@ -38,6 +62,7 @@ export default function RootLayout({
             <LedgerProvider>
               {children}
               <TrialReminder />
+              <WelcomeGiftDialog show={showWelcome} />
               <Toaster position="top-center" />
             </LedgerProvider>
           </MembershipProvider>

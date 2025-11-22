@@ -107,7 +107,9 @@ export function AvatarUpload({
 
     setUploading(true)
     try {
-      const result = await uploadAvatar(file)
+      const formData = new FormData()
+      formData.append("file", file)
+      const result = await uploadAvatar(formData)
       
       if (!result.success) {
         throw new Error(result.error || "上传失败")
