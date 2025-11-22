@@ -1,4 +1,3 @@
-# 依然使用 node:20-slim，保持系统兼容性
 FROM node:20-slim
 
 WORKDIR /app
@@ -25,7 +24,13 @@ RUN npm install --no-audit --legacy-peer-deps --loglevel verbose
 # 复制剩余代码
 COPY . .
 
-# 打包
+# --- 【核心修改】 ---
+# 限制 Node 堆内存为 3GB (物理1.8G + 虚拟4G，给它3G足够了)
+# 这样 Node 知道自己有这么多空间，就不会还没用到 Swap 就自己崩了
+# 同时也防止它无限申请内存
+ENV NODE_OPTIONS="--max-old-space-size=3072"
+# ------------------
+
 RUN npm run build
 
 # 暴露端口

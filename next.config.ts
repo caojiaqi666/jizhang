@@ -9,6 +9,7 @@ const withPWA = require("next-pwa")({
 });
 
 const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: false,
   eslint: {
     ignoreDuringBuilds: true,
   },
