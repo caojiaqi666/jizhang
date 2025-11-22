@@ -23,7 +23,9 @@ export async function createSession(userId: number, phone: string) {
   const cookieStore = await cookies()
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    // 在https模式下才会保存cookie
+    // secure: process.env.NODE_ENV === 'production',
+    secure: false,
     maxAge: COOKIE_MAX_AGE,
     path: '/',
     sameSite: 'lax',
