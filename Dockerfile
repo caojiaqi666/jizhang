@@ -1,32 +1,32 @@
-# 1. 使用 Node.js 18 作为基础环境
-FROM node:20-alpine
+# 1. 既然必须用 Node 20，我们选用兼容性最好的 slim 版本 (不要用 alpine)
+FROM node:20-slim
 
 # 2. 设置工作目录
 WORKDIR /app
 
-# --- 关键修改开始 ---
-# 设置 npm 淘宝源
-RUN npm config set registry https://registry.npmmirror.com
+# 3. 【关键】使用环境变量 (ENV) 来设置国内源
+# 新版 npm 不允许用 config set 设置 sharp，必须用 ENV，这样最稳
+ENV NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
+ENV SHARP_BINARY_HOST=https://npmmirror.com/mirrors/sharp
+ENV SHARP_LIBVIPS_BINARY_HOST=https://npmmirror.com/mirrors/sharp-libvips
 
-# 【重点】强制设置 Sharp 的下载源为国内镜像（解决你刚才的报错）
-RUN npm config set sharp_binary_host "https://npmmirror.com/mirrors/sharp"
-RUN npm config set sharp_libvips_binary_host "https://npmmirror.com/mirrors/sharp-libvips"
-# --- 关键修改结束 ---
-
-# 3. 复制依赖文件
+# 4. 复制依赖文件
 COPY package*.json ./
 
-# 4. 安装依赖
-RUN npm install
+# 5. 安装依赖
+# --no-audit: 不检查漏洞，加快速度
+# --legacy-peer-deps: 忽略版本冲突，防止报错
+RUN npm install --no-audit --legacy-peer-deps
 
-# 5. 复制所有代码
+# 6. 复制所有代码
 COPY . .
 
-# 6. 打包
+# 7. 打包项目
+# 如果你的项目需要 next build，这里会自动执行
 RUN npm run build
 
-# 7. 暴露端口
+# 8. 暴露端口
 EXPOSE 3000
 
-# 8. 启动
+# 9. 启动
 CMD ["npm", "start"]
