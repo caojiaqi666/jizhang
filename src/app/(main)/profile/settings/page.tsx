@@ -66,7 +66,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-4 pb-24 bg-gray-50 min-h-screen">
+    <div className="p-4 pb-24 bg-gray-50 min-h-screen pt-[calc(1rem+env(safe-area-inset-top))]">
       <header className="flex items-center gap-2 mb-6">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ChevronLeft className="w-6 h-6" />

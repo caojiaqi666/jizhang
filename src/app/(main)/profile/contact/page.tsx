@@ -9,7 +9,7 @@ export default function ContactAuthorPage() {
   const router = useRouter()
 
   return (
-    <div className="p-4 pb-24 min-h-screen bg-gray-50 flex flex-col gap-6">
+    <div className="p-4 pb-24 min-h-screen bg-gray-50 flex flex-col gap-6 pt-[calc(1rem+env(safe-area-inset-top))]">
       <header className="flex items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ChevronLeft className="w-6 h-6" />

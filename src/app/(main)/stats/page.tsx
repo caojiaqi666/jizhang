@@ -57,7 +57,7 @@ export default function StatsPage() {
   const gradientClass = THEME_COLORS[primaryColor] || THEME_COLORS.teal
 
   return (
-    <div className="p-4 pb-4 space-y-6">
+    <div className="p-4 pb-4 space-y-6 pt-[calc(1rem+env(safe-area-inset-top))]">
       <header 
         className={cn(
             "flex items-center justify-between p-6 rounded-[32px] shadow-lg text-white mb-6 transition-all duration-500",

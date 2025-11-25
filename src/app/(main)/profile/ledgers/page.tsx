@@ -90,7 +90,7 @@ export default function LedgersPage() {
   }
 
   return (
-    <div className="p-4 pb-24 bg-gray-50 min-h-screen">
+    <div className="p-4 pb-24 bg-gray-50 min-h-screen pt-[calc(1rem+env(safe-area-inset-top))]">
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react"
 import { getUserProfile, type UserProfile } from "@/app/actions/user"
 
 interface MembershipContextValue {
@@ -24,11 +24,13 @@ function calculateTrialDaysLeft(profile: UserProfile | null) {
 }
 
 export function MembershipProvider({ children }: { children: ReactNode }) {
+  console.log('[MembershipProvider] component render')
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const hydrate = async () => {
+  const hydrate = useCallback(async () => {
     try {
+      console.log('[MembershipProvider] hydrate called')
       setLoading(true)
       const data = await getUserProfile()
       setProfile(data)
@@ -37,10 +39,15 @@ export function MembershipProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
+    console.log('[MembershipProvider] useEffect mount')
     hydrate()
+    
+    return () => {
+      console.log('[MembershipProvider] useEffect unmount')
+    }
   }, [])
 
   const isPro = Boolean(profile?.is_pro)

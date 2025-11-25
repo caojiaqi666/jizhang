@@ -7,7 +7,7 @@ import { TrendingUp, Wallet, ArrowRight, Sparkles } from "lucide-react"
 
 export default function DiscoveryPage() {
   return (
-    <div className="p-4 pb-4 space-y-6">
+    <div className="p-4 pb-4 space-y-6 pt-[calc(1rem+env(safe-area-inset-top))]">
       <header className="mb-4">
         <h1 className="text-xl font-bold text-gray-900">发现灵感</h1>
         <p className="text-xs text-gray-500 mt-1">让存钱变得有趣，让生活更有质感</p>

@@ -52,6 +52,7 @@ export function RecordDrawer({ children, open, onOpenChange }: RecordDrawerProps
   const [selectedLedgerId, setSelectedLedgerId] = React.useState<string | undefined>(undefined)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [showLedgerSelector, setShowLedgerSelector] = React.useState(false)
+  const [keypadVisible, setKeypadVisible] = React.useState(false)
 
   // Initialize selectedLedgerId when currentLedger changes or drawer opens
   React.useEffect(() => {
@@ -119,6 +120,7 @@ export function RecordDrawer({ children, open, onOpenChange }: RecordDrawerProps
       // Reset form
       setAmount("0")
       setNote("")
+      setKeypadVisible(false)
       
       // Refresh data
       router.refresh()
@@ -156,7 +158,10 @@ export function RecordDrawer({ children, open, onOpenChange }: RecordDrawerProps
         
         <div className="flex-1 overflow-y-auto">
             {/* Amount Display */}
-            <div className="px-6 py-8 flex flex-col items-center justify-center">
+            <div 
+                className="px-6 py-8 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform"
+                onClick={() => setKeypadVisible(true)}
+            >
                 <div className="flex items-center gap-2 mb-4">
                      <Popover>
                         <PopoverTrigger asChild>
@@ -181,6 +186,12 @@ export function RecordDrawer({ children, open, onOpenChange }: RecordDrawerProps
                 )}>
                     {type === "expense" ? "-" : "+"}{amount}
                 </div>
+                {!keypadVisible && (
+                    <div className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                        <span>点击输入金额</span>
+                        <span className="text-[10px]">👆</span>
+                    </div>
+                )}
                 
                 <Popover open={showLedgerSelector} onOpenChange={setShowLedgerSelector}>
                     <PopoverTrigger asChild>
@@ -235,15 +246,29 @@ export function RecordDrawer({ children, open, onOpenChange }: RecordDrawerProps
             </div>
         </div>
 
-        {/* Keypad Area - Fixed at bottom */}
-        <div className="mt-auto shrink-0 relative z-20">
-            <Keypad 
-                onKeyPress={handleKeyPress} 
-                onDelete={handleDelete} 
-                onSubmit={handleSubmit} 
-                submitColorClass={type === 'expense' ? 'bg-expense hover:bg-expense/90' : 'bg-income hover:bg-income/90'}
-            />
-        </div>
+        {/* Keypad Area - Conditionally shown */}
+        {keypadVisible && (
+            <div className="mt-auto shrink-0 relative z-20">
+                <div className="flex justify-center pb-2">
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setKeypadVisible(false)
+                        }}
+                        className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 py-1 px-3 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                        <span>收起键盘</span>
+                        <span className="text-[10px]">▼</span>
+                    </button>
+                </div>
+                <Keypad 
+                    onKeyPress={handleKeyPress} 
+                    onDelete={handleDelete} 
+                    onSubmit={handleSubmit} 
+                    submitColorClass={type === 'expense' ? 'bg-expense hover:bg-expense/90' : 'bg-income hover:bg-income/90'}
+                />
+            </div>
+        )}
       </DrawerContent>
     </Drawer>
   )

@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, unstable_noStore } from "next/cache"
 import { getSession } from "@/utils/auth/session"
 import { getUserById, updateUserProfile as dbUpdateUserProfile, updateUserMembership, checkAndUpdateExpiredMemberships, updateUserPassword } from "@/utils/mysql/user"
 import { hashPassword, verifyPassword } from "@/utils/auth/password"
@@ -48,7 +48,10 @@ export async function changePassword(oldPassword: string, newPassword: string) {
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {
+    unstable_noStore() // Disable caching for this function
+    
     try {
+        console.log('[SERVER] getUserProfile called')
         const session = await getSession()
         if (!session) return null
 

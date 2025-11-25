@@ -64,7 +64,7 @@ export default function SavingsPage() {
   if (loading) return <div className="p-4 text-center text-gray-500">加载中...</div>
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 pt-[env(safe-area-inset-top)]">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b px-4 h-14 flex items-center gap-4">
         <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.back()}>
           <ArrowLeft className="w-5 h-5" />

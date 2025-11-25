@@ -34,7 +34,7 @@ export default function ProPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 pb-24">
+    <div className="min-h-screen bg-gray-900 text-white p-4 pb-24 pt-[calc(1rem+env(safe-area-inset-top))]">
       <header className="flex items-center gap-2 mb-8">
         <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => router.back()}>
             <ChevronLeft className="w-6 h-6" />

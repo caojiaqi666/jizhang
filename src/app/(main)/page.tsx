@@ -76,7 +76,7 @@ export default function Dashboard() {
   return (
     <main className="flex flex-col h-full relative">
       {/* Header / Balance Card - Mochi Style */}
-      <div className="px-6 pt-12 pb-4 relative z-10">
+      <div className="px-6 pt-[calc(3rem+env(safe-area-inset-top))] pb-4 relative z-10">
         <div className="flex justify-between items-center mb-4 px-2">
             <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-3xl shadow-[var(--shadow-soft)] cursor-pointer active:scale-90 transition-transform">
                 {/* Avatar Placeholder - cat emoji from 1.html */}

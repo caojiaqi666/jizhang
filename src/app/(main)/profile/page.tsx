@@ -150,7 +150,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-4 pb-4 space-y-6">
+    <div className="p-4 pb-4 space-y-6 pt-[calc(1rem+env(safe-area-inset-top))]">
       {/* Header / Profile Card */}
       <div className="flex flex-col items-center pt-4 pb-6">
         <AvatarUpload
