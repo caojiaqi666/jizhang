@@ -49,7 +49,7 @@ export async function createCategory(
 ): Promise<number> {
   const result = await execute(
     'INSERT INTO categories (name, icon, type, color, user_id, is_default) VALUES (?, ?, ?, ?, ?, ?)',
-    [name, icon, type, color, userId || null, userId ? false : true]
+    [name, icon, type, color || null, userId || null, userId ? false : true]
   )
   return result.insertId
 }

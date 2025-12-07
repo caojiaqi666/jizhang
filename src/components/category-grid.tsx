@@ -32,36 +32,49 @@ export function CategoryGrid({ selectedId, onSelect, type }: CategoryGridProps) 
   const filteredCategories = CATEGORIES.filter(c => c.type === type)
 
   return (
-    <ScrollArea className="w-full px-4">
-      <div className="grid grid-cols-4 gap-y-6 gap-x-4 py-4">
-        {filteredCategories.map((category) => {
-          const isSelected = selectedId === category.id
-          const Icon = category.icon
-          
-          return (
-            <div key={category.id} className="flex flex-col items-center gap-2 cursor-pointer group" onClick={() => onSelect(category.id)}>
+    <div className="w-full px-6 py-3">
+      <label className="text-xs text-gray-500 font-semibold mb-3 block ml-1">选择分类</label>
+      <div className="bg-white rounded-3xl shadow-md p-4 border border-gray-100">
+        <div className="grid grid-cols-4 gap-y-5 gap-x-3">
+          {filteredCategories.map((category) => {
+            const isSelected = selectedId === category.id
+            const Icon = category.icon
+            
+            return (
               <div 
-                className={cn(
-                  "w-14 h-14 rounded-[20px] flex items-center justify-center transition-all duration-300",
-                  isSelected 
-                    ? (type === 'expense' ? "bg-expense text-white shadow-lg scale-110 rotate-3" : "bg-income text-white shadow-lg scale-110 -rotate-3") 
-                    : category.color,
-                  !isSelected && "group-hover:scale-105 group-active:scale-95"
-                )}
+                key={category.id} 
+                className="flex flex-col items-center gap-2 cursor-pointer group active:scale-95 transition-transform" 
+                onClick={() => onSelect(category.id)}
               >
-                <Icon className="w-6 h-6 stroke-[2.5px]" />
+                <div 
+                  className={cn(
+                    "w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-200 shadow-sm",
+                    isSelected 
+                      ? (type === 'expense' 
+                          ? "bg-expense text-white shadow-lg shadow-expense/30 scale-105" 
+                          : "bg-income text-white shadow-lg shadow-income/30 scale-105") 
+                      : category.color + " group-hover:shadow-md group-hover:scale-105"
+                  )}
+                >
+                  <Icon className={cn(
+                    "stroke-[2.5px] transition-all",
+                    isSelected ? "w-7 h-7" : "w-6 h-6"
+                  )} />
+                </div>
+                <span className={cn(
+                  "text-[11px] font-semibold transition-colors leading-tight text-center",
+                  isSelected 
+                    ? (type === 'expense' ? "text-expense" : "text-income") 
+                    : "text-gray-500"
+                )}>
+                  {category.name}
+                </span>
               </div>
-              <span className={cn(
-                "text-xs font-bold transition-colors",
-                isSelected ? (type === 'expense' ? "text-expense" : "text-income") : "text-gray-400"
-              )}>
-                {category.name}
-              </span>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
-    </ScrollArea>
+    </div>
   )
 }
 

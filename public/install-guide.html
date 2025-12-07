@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安装指南 - 麻薯记账</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    .header .icon {
+      font-size: 60px;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      opacity: 0.95;
+      font-size: 16px;
+    }
+
+    .content {
+      padding: 30px 20px;
+    }
+
+    .platform-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      background: #f3f4f6;
+      padding: 5px;
+      border-radius: 12px;
+    }
+
+    .platform-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .platform-btn.active {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #14b8a6;
+    }
+
+    .guide {
+      display: none;
+    }
+
+    .guide.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step {
+      margin-bottom: 25px;
+      display: flex;
+      gap: 15px;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #1f2937;
+    }
+
+    .step-content p {
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    .step-image {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .step-image .emoji {
+      font-size: 48px;
+    }
+
+    .cta-button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin-top: 20px;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+    }
+
+    .cta-button:active {
+      transform: translateY(0);
+    }
+
+    .tips {
+      background: #f0fdf4;
+      border-left: 4px solid #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .tips h4 {
+      color: #065f46;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .tips p {
+      color: #047857;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="icon">🍡</div>
+      <h1>麻薯记账</h1>
+      <p>安装到你的设备，开始记账之旅</p>
+    </div>
+
+    <div class="content">
+      <div class="platform-selector">
+        <button class="platform-btn active" onclick="showGuide('ios')">
+          🍎 iPhone
+        </button>
+        <button class="platform-btn" onclick="showGuide('android')">
+          🤖 Android
+        </button>
+        <button class="platform-btn" onclick="showGuide('desktop')">
+          💻 电脑
+        </button>
+      </div>
+
+      <!-- iOS 指南 -->
+      <div id="guide-ios" class="guide active">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>打开 Safari 浏览器</h3>
+            <p>请使用 Safari 浏览器访问麻薯记账（其他浏览器不支持添加到主屏幕）</p>
+            <div class="step-image">
+              <div class="emoji">🧭</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>点击分享按钮</h3>
+            <p>在底部工具栏找到分享按钮（向上的箭头图标），点击它</p>
+            <div class="step-image">
+              <div class="emoji">📤</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>选择"添加到主屏幕"</h3>
+            <p>在弹出的菜单中，向下滚动找到"添加到主屏幕"选项</p>
+            <div class="step-image">
+              <div class="emoji">➕</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>确认添加</h3>
+            <p>点击右上角的"添加"按钮，应用图标会出现在你的主屏幕上</p>
+            <div class="step-image">
+              <div class="emoji">✅</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tips">
+          <h4>💡 小贴士</h4>
+          <p>添加后，你可以像使用其他 App 一样使用麻薯记账，支持全屏显示和快速启动！</p>
+        </div>
+      </div>
+
+      <!-- Android 指南 -->
+      <div id="guide-android" class="guide">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>使用 Chrome 浏览器</h3>
+            <p>用 Chrome 浏览器访问麻薯记账网站</p>
+            <div class="step-image">
+              <div class="emoji">🌐</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>等待安装提示</h3>
+            <p>Chrome 会自动弹出"安装应用"的横幅提示</p>
+            <div class="step-image">
+              <div class="emoji">📲</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>点击"安装"按钮</h3>
+            <p>在提示框中点击"安装"按钮，应用会被添加到你的设备</p>
+            <div class="step-image">
+              <div class="emoji">⬇️</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>开始使用</h3>
+            <p>安装完成后，可以从应用抽屉或主屏幕启动麻薯记账</p>
+            <div class="step-image">
+              <div class="emoji">🎉</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tips">
+          <h4>💡 小贴士</h4>
+          <p>如果没有看到安装提示，可以点击浏览器菜单（右上角三个点），选择"添加到主屏幕"或"安装应用"。</p>
+        </div>
+      </div>
+
+      <!-- 桌面指南 -->
+      <div id="guide-desktop" class="guide">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>使用 Chrome 或 Edge</h3>
+            <p>用 Chrome 或 Microsoft Edge 浏览器访问麻薯记账</p>
+            <div class="step-image">
+              <div class="emoji">🖥️</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>找到安装图标</h3>
+            <p>在地址栏右侧会出现一个安装图标（⊕ 或 💻），点击它</p>
+            <div class="step-image">
+              <div class="emoji">⊕</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>确认安装</h3>
+            <p>在弹出的对话框中点击"安装"按钮</p>
+            <div class="step-image">
+              <div class="emoji">✨</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>作为独立应用使用</h3>
+            <p>安装后，麻薯记账会作为独立应用窗口打开，可以固定到任务栏</p>
+            <div class="step-image">
+              <div class="emoji">🪟</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tips">
+          <h4>💡 小贴士</h4>
+          <p>桌面版可以使用快捷键、系统通知等功能，体验更接近原生应用！</p>
+        </div>
+      </div>
+
+      <button class="cta-button" onclick="window.location.href='/'">
+        立即开始使用 →
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function showGuide(platform) {
+      // 更新按钮状态
+      document.querySelectorAll('.platform-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // 显示对应指南
+      document.querySelectorAll('.guide').forEach(guide => {
+        guide.classList.remove('active');
+      });
+      document.getElementById(`guide-${platform}`).classList.add('active');
+    }
+  </script>
+</body>
+</html>
+
+
+
+

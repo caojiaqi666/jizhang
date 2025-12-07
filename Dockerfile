@@ -28,7 +28,7 @@ COPY . .
 # 限制 Node 堆内存为 3GB (物理1.8G + 虚拟4G，给它3G足够了)
 # 这样 Node 知道自己有这么多空间，就不会还没用到 Swap 就自己崩了
 # 同时也防止它无限申请内存
-ENV NODE_OPTIONS="--max-old-space-size=3072"
+# ENV NODE_OPTIONS="--max-old-space-size=3072"
 # ------------------
 
 RUN npm run build
@@ -38,3 +38,14 @@ EXPOSE 3000
 
 # 启动
 CMD ["npm", "start"]
+
+# 在本地构建镜像
+# docker build --platform linux/amd64 -t AnJiang666/jizhangapp:v1 .
+
+# 推送到docker镜像仓库
+# docker push AnJiang666/jizhangapp:v1
+
+# 从阿里云镜像仓库拉取镜像
+# docker pull crpi-t24wquf7wbhfv4px.cn-shanghai.personal.cr.aliyuncs.com/my_jing_xiang/jizhangapp:latest
+
+# https://cr.console.aliyun.com/repository/cn-shanghai/my_jing_xiang/jizhangapp/details
